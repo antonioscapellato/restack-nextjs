@@ -1,16 +1,5 @@
-import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
-import { useState } from "react";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { useState, useRef, useEffect } from "react";
+import { HiOutlineEmojiHappy, HiOutlinePaperAirplane } from "react-icons/hi";
 
 interface Message {
   role: string;
@@ -22,37 +11,56 @@ interface Message {
 export default function Home() {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [conversation, setConversation] = useState<Message[]>([]);
+  const [conversation, setConversation] = useState<Message[]>([
+    {
+      role: "assistant",
+      content:
+        "Hi! I'm Tinkerbell, your beauty salon assistant! How can I help you today? ✨💅",
+      tool_call_id: null,
+      tool_calls: null,
+    },
+  ]);
+  const chatRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    }
+  }, [conversation]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!message.trim()) return;
     setIsLoading(true);
-    
+    setConversation((prev) => [
+      ...prev,
+      { role: "user", content: message, tool_call_id: null, tool_calls: null },
+    ]);
     try {
-      const response = await fetch("https://re53cs0k.clj5khk.gcp.restack.it/api/agents/AgentChatToolFunctions/7e986f3c-AgentChatToolFunctions/019671f6-c007-7f14-9126-e9d0ee2290d1", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          eventName: "messages",
-          eventInput: {
-            messages: [
-              {
-                role: "user",
-                content: message,
-              },
-            ],
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to send message");
-      }
-
+      const response = await fetch(
+        "https://re53cs0k.clj5khk.gcp.restack.it/api/agents/AgentChatToolFunctions/7e986f3c-AgentChatToolFunctions/019671f6-c007-7f14-9126-e9d0ee2290d1",
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            eventName: "messages",
+            eventInput: {
+              messages: [
+                {
+                  role: "user",
+                  content: message,
+                },
+              ],
+            },
+          }),
+        }
+      );
+      if (!response.ok) throw new Error("Failed to send message");
       const data = await response.json();
-      setConversation(Object.values(data));
+      setConversation((prev) => [
+        ...prev,
+        ...Object.values(data).filter((msg: any): msg is Message => typeof msg === 'object' && msg && typeof msg.role === 'string' && typeof msg.content === 'string'),
+      ]);
       setMessage("");
     } catch (error) {
       console.error("Error:", error);
@@ -62,142 +70,64 @@ export default function Home() {
   };
 
   return (
-    <div
-      className={`${geistSans.className} ${geistMono.className} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
-    >
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start w-full max-w-4xl">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <div className="flex flex-col gap-4 w-full">
-          <div className="flex flex-col gap-4 h-[400px] overflow-y-auto p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
-            {conversation.map((msg, index) => (
+    <div className="min-h-screen bg-gradient-to-b from-pink-100 to-white flex flex-col items-center justify-start">
+      <div className="w-full max-w-2xl mx-auto pt-16 px-4 flex flex-col items-center">
+        <h1 className="text-5xl font-extrabold text-gray-800 text-center mb-2 tracking-tight">
+          Welcome to Your Beauty Assistant <span className="inline-block align-middle">✨</span>
+        </h1>
+        <p className="text-lg text-gray-600 text-center mb-10">
+          Meet Tinkerbell, your personal beauty salon concierge. Book appointments, get beauty advice, and more! <span role="img" aria-label="flower">🌸</span>
+        </p>
+        <div className="w-full flex-1 flex flex-col">
+          <div
+            ref={chatRef}
+            className="flex-1 overflow-y-auto pb-6"
+            style={{ minHeight: 120, maxHeight: 220 }}
+          >
+            {conversation.map((msg, idx) => (
               <div
-                key={index}
-                className={`flex ${
-                  msg.role === "user" ? "justify-end" : "justify-start"
-                }`}
+                key={idx}
+                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} mb-4`}
               >
                 <div
-                  className={`max-w-[80%] p-3 rounded-lg ${
+                  className={`rounded-2xl px-6 py-4 text-base max-w-[80%] ${
                     msg.role === "user"
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200 dark:bg-gray-700 text-black dark:text-white"
+                      ? "bg-pink-200 text-gray-800"
+                      : "bg-pink-300 text-gray-800"
                   }`}
+                  style={{ wordBreak: "break-word" }}
                 >
                   {msg.content}
                 </div>
               </div>
             ))}
           </div>
-          <form onSubmit={handleSubmit} className="flex gap-4">
+          <form
+            onSubmit={handleSubmit}
+            className="w-full flex items-center gap-2 border-t border-pink-100 pt-6 mt-2"
+            autoComplete="off"
+          >
+            <span className="flex items-center justify-center w-10 h-10 rounded-full bg-pink-100 text-pink-400">
+              <HiOutlineEmojiHappy size={24} />
+            </span>
             <input
               type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Type your message..."
-              className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-black dark:text-white"
+              placeholder="Message Tinkerbell..."
+              className="flex-1 px-4 py-3 rounded-full border border-pink-100 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-200 text-base shadow-sm"
               disabled={isLoading}
             />
             <button
               type="submit"
-              disabled={isLoading}
-              className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading || !message.trim()}
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-pink-300 hover:bg-pink-400 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? "Sending..." : "Send"}
+              <HiOutlinePaperAirplane size={22} />
             </button>
           </form>
         </div>
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/pages/index.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
     </div>
   );
 }
