@@ -41,7 +41,7 @@ export default function Home() {
     ]);
     try {
       const response = await fetch(
-        "https://re53cs0k.clj5khk.gcp.restack.it/api/agents/AgentChatToolFunctions/7e986f3c-AgentChatToolFunctions/019671f6-c007-7f14-9126-e9d0ee2290d1",
+        "https://rehs6pdm.clj5khk.gcp.restack.it/api/agents/AgentChatToolFunctions/48a98a2d-AgentChatToolFunctions/0196770e-d665-76c9-b96c-41cde9349677",
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -60,6 +60,7 @@ export default function Home() {
       );
       if (!response.ok) throw new Error("Failed to send message");
       const data = await response.json();
+      console.log(data);
       if (data.tasks && Array.isArray(data.tasks)) {
         addTasks(data.tasks);
       }
