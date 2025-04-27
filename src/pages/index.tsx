@@ -41,7 +41,7 @@ export default function Home() {
     ]);
     try {
       const response = await fetch(
-        "https://rehs6pdm.clj5khk.gcp.restack.it/api/agents/AgentChatToolFunctions/48a98a2d-AgentChatToolFunctions/0196770e-d665-76c9-b96c-41cde9349677",
+        "https://rehs6pdm.clj5khk.gcp.restack.it/api/agents/AgentChatToolFunctions/1704aab6-AgentChatToolFunctions/01967767-6de6-74b3-9937-9528c7a29e95",
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
