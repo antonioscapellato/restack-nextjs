@@ -79,9 +79,9 @@ export default function Home() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-b from-pink-100 to-white flex flex-col items-center justify-start pt-20">
+      <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white flex flex-col items-center justify-start pt-20">
         <div className="w-full max-w-2xl mx-auto pt-16 px-4 flex flex-col items-center">
-          <h1 className="text-5xl font-extrabold text-gray-800 text-center mb-2 tracking-tight">
+          <h1 className="text-4xl font-bold text-gray-800 text-center mb-2 tracking-tight">
             Welcome to Your Beauty Assistant <span className="inline-block align-middle">✨</span>
           </h1>
           <p className="text-lg text-gray-600 text-center mb-10">
